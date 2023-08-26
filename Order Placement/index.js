@@ -1,7 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const dotenv = require("dotenv");
 const {Sequelize, DataTypes} = require("sequelize");
 const {pool} = require("./db");
 
@@ -13,8 +12,10 @@ app.use(cors());
 app.use(bodyParser.json());
 
 /* Routes */
-
-
+const orderRoutes = require("./routes/order");
+app.use("/order", orderRoutes);
+const cartRoutes = require("./routes/cart");
+app.use("/cart", cartRoutes);
 
 /* Sequelize Setup */
 const PORT = process.env.PORT || 8071;
@@ -37,4 +38,3 @@ sequelize
 app.listen(PORT, () => {
     console.log(`Server is up and running on port number : ${PORT}`);
 });
-

@@ -1,107 +1,75 @@
 const express = require('express');
 const router = express.Router();
 const { Cart, CartItem } = require('../models/Cart');
-const {Order, Item} = require("../models/Order");
 
-router.post('/addCart', async (req, res) => {
+// Add an item to the cart
+router.post('/', async (req, res) => {
     try {
-        const { orderId, customerId, amount, status, txnId, items } = req.body;
+        const { customerId, unit } = req.body;
 
-        const order = await Order.create({
-            orderId,
-            customerId,
-            amount,
-            status,
-            txnId,
+        const cart = await Cart.create({ customerId });
+
+        const cartItem = await CartItem.create({
+            unit,
+            CartId: cart.id,
         });
 
-        // Create associated items
-        await Item.bulkCreate(items.map(item => ({
-            unit: item.unit,
-            OrderId: order.id, // Associate with the order
-        })));
-
-        res.json(order);
+        res.status(201).json(cartItem);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Server error' });
     }
 });
 
-// Get all carts
-router.get('/orders', async (req, res) => {
+// Remove an item from the cart
+router.delete('/:cartItemId', async (req, res) => {
     try {
-        const orders = await Order.findAll({
-            include: Item, // Include associated items
-        });
+        const { cartItemId } = req.params;
 
-        res.json(orders);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
+        const cartItem = await CartItem.findByPk(cartItemId);
 
-// Get cart by ID
-router.get('/orders/:id', async (req, res) => {
-    try {
-        const order = await Order.findByPk(req.params.id, {
-            include: Item, // Include associated items
-        });
-
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
+        if (!cartItem) {
+            return res.status(404).json({ error: 'Cart item not found' });
         }
 
-        res.json(order);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// Update cart by ID
-router.put('/orders/:id', async (req, res) => {
-    try {
-        const order = await Order.findByPk(req.params.id);
-
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
-        }
-
-        const { orderId, customerId, amount, status, txnId, items } = req.body;
-
-        await order.update({
-            orderId,
-            customerId,
-            amount,
-            status,
-            txnId,
-        });
-
-        // Update associated items (you can implement this if needed)
-
-        res.json(order);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// Delete cart by ID
-router.delete('/orders/:id', async (req, res) => {
-    try {
-        const order = await Order.findByPk(req.params.id);
-
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
-        }
-
-        // Delete associated items first (you can implement this if needed)
-
-        await order.destroy();
+        await cartItem.destroy();
 
         res.status(204).end();
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Update a cart item
+router.put('/:cartItemId', async (req, res) => {
+    try {
+        const { cartItemId } = req.params;
+        const { unit } = req.body;
+
+        const cartItem = await CartItem.findByPk(cartItemId);
+
+        if (!cartItem) {
+            return res.status(404).json({ error: 'Cart item not found' });
+        }
+
+        await cartItem.update({ unit });
+
+        res.json(cartItem);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get all cart items
+router.get('/', async (req, res) => {
+    try {
+        const cartItems = await CartItem.findAll({
+            include: Cart,
+        });
+
+        res.json(cartItems);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Server error' });

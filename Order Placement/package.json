@@ -20,5 +20,8 @@
     "sequelize": "^6.32.1",
     "uuid": "^9.0.0",
     "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "@types/sequelize": "^4.28.15"
   }
 }
