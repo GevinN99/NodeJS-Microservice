@@ -57,7 +57,6 @@ The project utilizes the following technologies:
 - **MySQL**, **PostgreSQL**, and **MongoDB** for data storage in respective microservices.
 - **RabbitMQ** for asynchronous messaging and communication between microservices.
 - **Sequelize** and **Mongoose** as Object-Relational Mapping (ORM) libraries.
-- **Docker** (optional) for containerization and easy deployment.
 
 ## Installation
 
