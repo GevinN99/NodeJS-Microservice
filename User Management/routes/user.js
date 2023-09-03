@@ -1,165 +1,102 @@
-module.exports = (pool, channel, queue) => {
-    const express = require("express");
-    const router = express.Router();
-    const db = require("../db");
+const express = require("express");
+const router = express.Router();
+const db = require("../db");
 
-    // Add a new user
-    router.post("/", async (req, res) => {
-        try {
-            const newUser = req.body;
-            const connection = await pool.getConnection();
+// Add a new user
+router.post("/addUser", async (req, res) => {
+    try {
+        const newUser = req.body;
+        // Initialize cart, wishlist, and orders as empty JSON arrays
+        newUser.cart = JSON.stringify([]);
+        newUser.wishlist = JSON.stringify([]);
+        newUser.orders = JSON.stringify([]);
 
-            await connection.execute("INSERT INTO users SET ?", [newUser]);
+        const [result] = await db.query("INSERT INTO users SET ?", [newUser]);
+        const userId = result.insertId;
 
-            connection.release();
+        res.json({ message: "User added successfully", userId });
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 
-            //message to rabbitmq
-            channel.sendToQueue(queue, Buffer.from(JSON.stringify(newUser)), {
-                persistent: true, // Ensure the message is not lost even if RabbitMQ restarts
-            });
 
-            res.json({ message: "User added successfully" });
-        } catch (error) {
-            console.error("Error:", error);
-            res.status(500).json({ message: "Internal server error" });
+// Get a user by ID
+router.get("/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const [rows] = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
         }
-    });
 
-    // Get a user by ID
-    router.get("/:userId", async (req, res) => {
-        try {
-            const userId = req.params.userId;
-            const connection = await pool.getConnection();
+        const user = rows[0];
+        res.json(user);
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 
-            const [rows] = await connection.execute(
-                "SELECT * FROM users WHERE id = ?",
-                [userId]
-            );
+// Update a user by ID
+router.put("/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const updatedUserData = req.body;
+        await db.query("UPDATE users SET ? WHERE id = ?", [updatedUserData, userId]);
 
-            connection.release();
-            const message = 'User Found!';
-            channel.sendToQueue(queue, Buffer.from(message));
+        res.json({ message: "User updated successfully" });
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 
-            if (rows.length === 0) {
-                return res.status(404).json({ message: "User not found" });
-            }
+// Get customer's wishlist by user ID
+router.get("/:userId/wishlist", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const [rows] = await db.query("SELECT wishlist FROM users WHERE id = ?", [userId]);
 
-            const user = rows[0];
-            res.json(user);
-        } catch (error) {
-            console.error("Error:", error);
-            res.status(500).json({ message: "Internal server error" });
+        if (rows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
         }
-    });
 
-    // Update a user by ID
-    router.put("/:userId", async (req, res) => {
+        const wishlistData = rows[0].wishlist;
+
         try {
-            const userId = req.params.userId;
-            const updatedUserData = req.body;
-            const connection = await pool.getConnection();
-
-            await connection.execute(
-                "UPDATE users SET ? WHERE id = ?",
-                [updatedUserData, userId]
-            );
-
-            connection.release();
-
-            //message to rabbitmq
-            channel.sendToQueue(queue, Buffer.from(JSON.stringify(updatedUserData)), {
-                persistent: true,
-            });
-
-            res.json({ message: "User updated successfully" });
-        } catch (error) {
-            console.error("Error:", error);
-            res.status(500).json({ message: "Internal server error" });
-        }
-    });
-
-    // Get customer's wishlist by user ID
-    router.get("/:userId/wishlist", async (req, res) => {
-        try {
-            const userId = req.params.userId;
-            const connection = await pool.getConnection();
-
-            const [rows] = await connection.execute(
-                "SELECT wishlist FROM users WHERE id = ?",
-                [userId]
-            );
-
-            connection.release();
-
-            if (rows.length === 0) {
-                return res.status(404).json({ message: "User not found" });
-            }
-
-            const wishlist = rows[0].wishlist;
+            const wishlist = JSON.parse(wishlistData);
             res.json(wishlist);
-        } catch (error) {
-            console.error("Error:", error);
-            res.status(500).json({ message: "Internal server error" });
+        } catch (parseError) {
+            console.error("Error parsing JSON:", parseError);
+            res.status(500).json({ message: "Error parsing wishlist data" });
         }
-    });
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 
-    // Update customer's address by user ID
-    router.put("/:userId/address", async (req, res) => {
-        try {
-            const userId = req.params.userId;
-            const newAddress = req.body;
-            const connection = await pool.getConnection();
 
-            await connection.execute(
-                "UPDATE users SET address_id = ? WHERE id = ?",
-                [newAddress.address_id, userId]
-            );
 
-            connection.release();
+// Delete a user by ID
+router.delete("/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const [userRows] = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
 
-            //message to rabbitmq
-            channel.sendToQueue(queue, Buffer.from(JSON.stringify(newAddress)), {
-                persistent: true,
-            });
-
-            res.json({ message: "Address updated successfully" });
-        } catch (error) {
-            console.error("Error:", error);
-            res.status(500).json({ message: "Internal server error" });
+        if (userRows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
         }
-    });
 
-    // Delete a user by ID
-    router.delete("/:userId", async (req, res) => {
-        try {
-            const userId = req.params.userId;
-            const connection = await pool.getConnection();
+        await db.query("DELETE FROM users WHERE id = ?", [userId]);
+        res.json({ message: "User deleted successfully" });
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 
-            // Check if the user exists
-            const [userRows] = await connection.execute(
-                "SELECT * FROM users WHERE id = ?",
-                [userId]
-            );
-            if (userRows.length === 0) {
-                connection.release();
-                return res.status(404).json({ message: "User not found" });
-            }
-
-            // Delete the user
-            await connection.execute("DELETE FROM users WHERE id = ?", [userId]);
-            connection.release();
-
-            //message to rabbitmq
-            channel.sendToQueue(queue, Buffer.from(JSON.stringify({ userId })), {
-                persistent: true,
-            });
-
-            res.json({ message: "User deleted successfully" });
-        } catch (error) {
-            console.error("Error:", error);
-            res.status(500).json({ message: "Internal server error" });
-        }
-    });
-
-    return router;
-};
+module.exports = router;
