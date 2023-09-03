@@ -1,35 +1,35 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../db');
+const sequelize = require('../db');
 
 const Order = sequelize.define('Order', {
     orderId: {
         type: DataTypes.STRING,
+        allowNull: false,
     },
     customerId: {
         type: DataTypes.STRING,
+        allowNull: false,
     },
     amount: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.FLOAT,
+        allowNull: false,
     },
     status: {
         type: DataTypes.STRING,
+        allowNull: false,
     },
     txnId: {
         type: DataTypes.STRING,
+        allowNull: false,
     },
-},{
-    tableName: 'Order',
-});
-
-const Item = sequelize.define('Item', {
-    unit: {
-        type: DataTypes.INTEGER,
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
         allowNull: false,
     },
 });
 
-Order.hasMany(Item);
-Item.belongsTo(Order);
-
-module.exports = { Order, Item };
-
+module.exports = Order;
