@@ -25,11 +25,16 @@ const Order = sequelize.define('Order', {
     createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: sequelize.literal('CURRENT_TIMESTAMP'),
     },
     updatedAt: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: sequelize.literal('CURRENT_TIMESTAMP'),
     },
+}, {
+    tableName: 'Orders',
+    timestamps: false, // If you want to manage timestamps manually
 });
 
 module.exports = Order;

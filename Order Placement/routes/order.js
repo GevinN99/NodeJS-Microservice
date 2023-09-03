@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/order');
+const axios = require('axios'); // Import axios if not already imported
 
 // Create an order
 router.post('/addOrder', async (req, res) => {
     try {
-        const {orderId, customerId, amount, status, txnId, createdAt, updatedAt} = req.body;
+        const { orderId, customerId, amount, status, txnId, createdAt, updatedAt } = req.body;
 
+        // Create a new order
         const order = await Order.create({
             orderId,
             customerId,
@@ -17,10 +19,10 @@ router.post('/addOrder', async (req, res) => {
             updatedAt,
         });
 
-        res.status(201).json({message: 'Order created successfully', order});
+        res.status(201).json({ message: 'Order created successfully', order });
     } catch (error) {
         console.error('Error creating order:', error);
-        res.status(500).json({error: 'Unable to create the order'});
+        res.status(500).json({ error: 'Unable to create the order' });
     }
 });
 
@@ -32,60 +34,33 @@ router.get('/orders', async (req, res) => {
         res.json(orders);
     } catch (error) {
         console.error(error);
-        res.status(500).json({error: 'Server error'});
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
 // Get order by ID
-router.get('/order/:id', async (req, res) => {
+router.get('/orders/:id', async (req, res) => {
     try {
         const order = await Order.findByPk(req.params.id);
 
         if (!order) {
-            return res.status(404).json({error: 'Order not found'});
+            return res.status(404).json({ error: 'Order not found' });
         }
 
         res.json(order);
     } catch (error) {
         console.error(error);
-        res.status(500).json({error: 'Server error'});
+        res.status(500).json({ error: 'Server error' });
     }
 });
-
-// Update order by ID
-router.put('/updateOrder/:id', async (req, res) => {
-    try {
-        const order = await Order.findByPk(req.params.id);
-
-        if (!order) {
-            return res.status(404).json({error: 'Order not found'});
-        }
-
-        const {orderId, customerId, amount, status, txnId} = req.body;
-
-        await order.update({
-            orderId,
-            customerId,
-            amount,
-            status,
-            txnId,
-        });
-
-        res.json(order);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({error: 'Server error'});
-    }
-});
-
 
 // Delete order by ID
-router.delete('/deleteOrder/:id', async (req, res) => {
+router.delete('/orders/:id', async (req, res) => {
     try {
         const order = await Order.findByPk(req.params.id);
 
         if (!order) {
-            return res.status(404).json({error: 'Order not found'});
+            return res.status(404).json({ error: 'Order not found' });
         }
 
         await order.destroy();
@@ -93,7 +68,31 @@ router.delete('/deleteOrder/:id', async (req, res) => {
         res.status(204).end();
     } catch (error) {
         console.error(error);
-        res.status(500).json({error: 'Server error'});
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get user information by user ID from User Management microservice
+router.get('/getUserInfo/:userId', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        // Send a GET request to the User Management microservice
+        const userManagementURL = 'http://localhost:8074/users/' + userId;
+        const response = await axios.get(userManagementURL);
+
+        // Check if the User Management microservice responded successfully
+        if (response.status === 200) {
+            // User information retrieved successfully
+            const userInfo = response.data;
+            res.json(userInfo);
+        } else {
+            // Handle error from the User Management microservice
+            res.status(response.status).json({ error: 'Error retrieving user information' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
     }
 });
 

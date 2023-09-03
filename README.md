@@ -11,6 +11,7 @@ Welcome to our distributed microservices project that includes User Management, 
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
+- [Postman Collection](#postman-collection)
 
 ## Project Overview
 
@@ -94,3 +95,7 @@ If you'd like to contribute to this project, please follow the standard GitHub F
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Postman Collection
+
+Access our Postman collection to explore and test the API endpoints: [Postman Collection](https://www.postman.com/avionics-operator-73461619/workspace/adbms-assignment-01/collection/26510408-ba20ad31-6b5c-4721-a991-0183ffb3b232?action=share&creator=26510388)

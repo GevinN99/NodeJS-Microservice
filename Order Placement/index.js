@@ -9,12 +9,12 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const orderRouter = require('./routes/order');
-app.use('/order', orderRouter);
+app.use('/', orderRouter);
 
 const PORT = process.env.PORT || 8072;
 
 sequelize
-    .authenticate()
+    .sync()
     .then(() => {
         console.log('PostgreSQL database connected successfully.');
     })
