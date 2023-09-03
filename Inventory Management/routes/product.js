@@ -21,32 +21,26 @@ router.post("/addProduct", async (req, res) => {
 
         const savedProduct = await newProduct.save();
 
-        // Assuming you want to create an order in the Order Placement microservice when a product is added
-        // Prepare the data for creating an order (you may modify this as per your actual requirements)
         const orderData = {
-            orderId: "ORDER123", // Generate a unique order ID
-            customerId: "CUSTOMER123", // Provide a valid customer ID
-            amount: req.body.price * req.body.unit, // Calculate the order amount based on product price and quantity
-            status: "PENDING", // Set the initial status as pending
-            txnId: "TXN123", // Generate a unique transaction ID
+            orderId: "ORDER123",
+            customerId: "CUSTOMER123",
+            amount: req.body.price * req.body.unit,
+            status: "PENDING",
+            txnId: "TXN123",
             createdAt: new Date(),
             updatedAt: new Date(),
         };
 
-        // Send a POST request to the Order Placement microservice to create the order
         const orderResponse = await axios.post("http://localhost:8072/order/addOrder", orderData);
 
-        // Check if the order creation was successful
         if (orderResponse.status === 201) {
-            // The order was created successfully
             res.json(savedProduct);
         } else {
-            // Handle the case where order creation failed
-            res.status(500).json({ error: "Unable to create the order" });
+            res.status(500).json({error: "Unable to create the order"});
         }
     } catch (error) {
         console.error("Error creating product:", error);
-        res.status(500).json({ error: "Unable to create the product" });
+        res.status(500).json({error: "Unable to create the product"});
     }
 });
 
@@ -56,7 +50,7 @@ router.get("/", async (req, res) => {
         const products = await Product.find();
         res.json(products);
     } catch (error) {
-        res.status(500).json({ error: "Unable to fetch products" });
+        res.status(500).json({error: "Unable to fetch products"});
     }
 });
 
@@ -65,11 +59,11 @@ router.get("/:productId", async (req, res) => {
     try {
         const product = await Product.findById(req.params.productId);
         if (!product) {
-            return res.status(404).json({ error: "Product not found" });
+            return res.status(404).json({error: "Product not found"});
         }
         res.json(product);
     } catch (error) {
-        res.status(500).json({ error: "Unable to fetch the product" });
+        res.status(500).json({error: "Unable to fetch the product"});
     }
 });
 
@@ -79,15 +73,15 @@ router.put("/:productId", async (req, res) => {
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.productId,
             req.body,
-            { new: true }
+            {new: true}
         );
         if (!updatedProduct) {
-            return res.status(404).json({ error: "Product not found" });
+            return res.status(404).json({error: "Product not found"});
         }
 
         res.json(updatedProduct);
     } catch (error) {
-        res.status(500).json({ error: "Unable to update the product" });
+        res.status(500).json({error: "Unable to update the product"});
     }
 });
 
@@ -96,12 +90,12 @@ router.delete("/:productId", async (req, res) => {
     try {
         const deletedProduct = await Product.findByIdAndRemove(req.params.productId);
         if (!deletedProduct) {
-            return res.status(404).json({ error: "Product not found" });
+            return res.status(404).json({error: "Product not found"});
         }
 
-        res.json({ message: "Product deleted successfully" });
+        res.json({message: "Product deleted successfully"});
     } catch (error) {
-        res.status(500).json({ error: "Unable to delete the product" });
+        res.status(500).json({error: "Unable to delete the product"});
     }
 });
 

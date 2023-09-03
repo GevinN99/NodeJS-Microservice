@@ -27,7 +27,7 @@ app.use("/order", (req, res) => {
             if (error.response) {
                 res.status(error.response.status).json(error.response.data);
             } else {
-                res.status(500).json({ message: "Internal server error" });
+                res.status(500).json({message: "Internal server error"});
             }
         });
 });
@@ -48,7 +48,7 @@ app.use("/users", (req, res) => {
             if (error.response) {
                 res.status(error.response.status).json(error.response.data);
             } else {
-                res.status(500).json({ message: "Internal server error" });
+                res.status(500).json({message: "Internal server error"});
             }
         });
 });
@@ -69,7 +69,7 @@ app.use("/products", (req, res) => {
             if (error.response) {
                 res.status(error.response.status).json(error.response.data);
             } else {
-                res.status(500).json({ message: "Internal server error" });
+                res.status(500).json({message: "Internal server error"});
             }
         });
 });

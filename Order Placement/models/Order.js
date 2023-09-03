@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+const {DataTypes} = require('sequelize');
 const sequelize = require('../db');
 
 const Order = sequelize.define('Order', {
@@ -34,7 +34,7 @@ const Order = sequelize.define('Order', {
     },
 }, {
     tableName: 'Orders',
-    timestamps: false, // If you want to manage timestamps manually
+    timestamps: false,
 });
 
 module.exports = Order;
